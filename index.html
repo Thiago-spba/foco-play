@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulado Gamificado: Produtividade</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Classes utilitárias para a animação 3D da carta */
+        .perspective-1000 { perspective: 1000px; }
+        .transform-style-3d { transform-style: preserve-3d; }
+        .backface-hidden { backface-visibility: hidden; }
+        .rotate-y-180 { transform: rotateY(180deg); }
+        .flip-card-inner { transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1); }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col">
+
+    <!-- Cabeçalho de Progresso -->
+    <header class="bg-indigo-600 text-white p-4 shadow-md sticky top-0 z-10">
+        <div class="max-w-md mx-auto flex justify-between items-center">
+            <h1 class="text-lg font-bold">Trilha da Produtividade</h1>
+            <div class="text-sm font-medium bg-indigo-800 px-3 py-1 rounded-full">
+                Score: <span id="scoreDisplay">0</span> / 30
+            </div>
+        </div>
+        <div class="max-w-md mx-auto mt-2 bg-indigo-800 rounded-full h-2 overflow-hidden">
+            <div id="progressBar" class="bg-green-400 h-2 w-0 transition-all duration-300"></div>
+        </div>
+    </header>
+
+    <!-- Container Principal do Jogo -->
+    <main class="flex-1 flex items-center justify-center p-4">
+        
+        <!-- Tela Final (Oculta por padrão) -->
+        <div id="endScreen" class="hidden text-center max-w-md mx-auto bg-white p-8 rounded-2xl shadow-xl w-full">
+            <h2 class="text-3xl font-bold text-indigo-600 mb-4">Simulado Concluído!</h2>
+            <p class="text-lg mb-6">Você acertou <strong id="finalScore" class="text-indigo-600"></strong> de 30 questões.</p>
+            <button onclick="location.reload()" class="bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg w-full hover:bg-indigo-700 transition">Tentar Novamente</button>
+        </div>
+
+        <!-- Área da Carta -->
+        <div id="gameContainer" class="w-full max-w-md perspective-1000 h-[450px]">
+            <div id="cardInner" class="w-full h-full relative transform-style-3d flip-card-inner">
+                
+                <!-- Frente da Carta (Pergunta) -->
+                <div class="absolute w-full h-full backface-hidden bg-white rounded-2xl shadow-xl border border-slate-200 flex flex-col">
+                    <div class="p-6 border-b border-slate-100">
+                        <span id="questionCounter" class="text-xs font-bold text-indigo-500 uppercase tracking-wider mb-2 block">Questão 1 de 30</span>
+                        <h2 id="questionText" class="text-xl font-bold text-slate-800 leading-tight">Carregando pergunta...</h2>
+                    </div>
+                    <div id="optionsContainer" class="p-4 flex flex-col gap-3 overflow-y-auto">
+                        <!-- Botões de alternativa injetados via JS -->
+                    </div>
+                </div>
+
+                <!-- Verso da Carta (Resposta/Feedback) -->
+                <div class="absolute w-full h-full backface-hidden bg-white rounded-2xl shadow-xl border border-slate-200 rotate-y-180 flex flex-col justify-between">
+                    <div class="p-6">
+                        <div id="feedbackIcon" class="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center text-3xl text-white"></div>
+                        <h2 id="feedbackTitle" class="text-2xl font-bold text-center mb-2"></h2>
+                        <p id="feedbackExplanation" class="text-slate-600 text-center text-sm mb-4"></p>
+                    </div>
+                    <div class="p-6 bg-slate-50 rounded-b-2xl">
+                        <button id="nextBtn" class="bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg w-full hover:bg-indigo-700 transition active:scale-95">
+                            Próxima Questão
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Banco de Questões (30) extraído da base teórica
+        const questions = [
+            { q: "O que é a gestão do tempo?", options: ["Fazer múltiplas tarefas ao mesmo tempo", "Planejar e priorizar o tempo dedicado a tarefas com estratégia", "Trabalhar sem pausas para terminar mais rápido", "Anotar tudo que precisa ser feito em post-its"], answer: 1, explanation: "A gestão do tempo é o ato estratégico de organizar as tarefas para cumprir prazos e reduzir o estresse diário." },
+            { q: "Qual é o principal objetivo da Matriz de Eisenhower?", options: ["Organizar o ambiente físico", "Dividir tarefas em blocos de 25 minutos", "Classificar tarefas com base em urgência e importância", "Criar padrões para nomear arquivos digitais"], answer: 2, explanation: "A matriz cria quadrantes que cruzam urgência e importância para definir prioridades." },
+            { q: "Na Matriz de Eisenhower, o que fazer com uma tarefa 'Importante e Urgente'?", options: ["Agendar para depois", "Delegar para outra pessoa", "Eliminar da rotina", "Fazer imediatamente (Faça agora)"], answer: 3, explanation: "Demandas de alto impacto com prazos curtos devem ser resolvidas imediatamente." },
+            { q: "O que fazer com uma tarefa 'Importante, mas não urgente'?", options: ["Fazer agora", "Agendar para o médio ou longo prazo", "Delegar", "Eliminar"], answer: 1, explanation: "Essas tarefas garantem metas futuras e evitam crises. Decida e agende quando fazer." },
+            { q: "O que fazer com uma tarefa 'Urgente, mas não importante'?", options: ["Fazer agora mesmo", "Adiar sem prazo", "Delegar ou adiar", "Focar 100% nela"], answer: 2, explanation: "Elas devem ser delegadas ou adiadas para não consumirem o tempo das suas prioridades." },
+            { q: "O que fazer com atividades 'Não importantes e não urgentes'?", options: ["Eliminar ou evitar", "Deixar para o final do dia", "Delegar", "Fazer aos fins de semana"], answer: 0, explanation: "São puras distrações e perdas de tempo que não agregam aos seus objetivos." },
+            { q: "Estudar para uma prova agendada para amanhã é um exemplo de qual quadrante?", options: ["Importante, mas não urgente", "Urgente, mas não importante", "Não importante nem urgente", "Importante e Urgente"], answer: 3, explanation: "O impacto é alto (nota) e o prazo está esgotando (amanhã)." },
+            { q: "Rolar o feed das redes sociais sem propósito durante o estudo é:", options: ["Não Importante e Não Urgente", "Importante, mas não urgente", "Urgente, mas não importante", "Importante e Urgente"], answer: 0, explanation: "É uma distração pura que deve ser eliminada durante o foco produtivo." },
+            { q: "Organizar o espaço de estudo para a próxima semana é um exemplo de:", options: ["Importante e Urgente", "Importante, mas Não Urgente", "Urgente, mas Não Importante", "Não Importante e Não Urgente"], answer: 1, explanation: "Tem grande impacto no bem-estar, mas não tem um prazo imediato estourando." },
+            { q: "Responder mensagens banais no WhatsApp é um exemplo de:", options: ["Importante e Urgente", "Importante, mas Não Urgente", "Urgente, mas Não Importante", "Não Importante e Não Urgente"], answer: 2, explanation: "A notificação gera urgência, mas o conteúdo raramente tem importância real." },
+            { q: "Qual é um erro comum na gestão estratégica do tempo?", options: ["Usar agenda virtual", "Pensar que tudo que é importante tem que ser feito agora", "Fazer pausas durante o trabalho", "Limpar a mesa de trabalho"], answer: 1, explanation: "Muitas tarefas são importantes, mas não têm prazo para hoje. É preciso saber diferenciar urgência de importância." },
+            { q: "O que é a técnica Pomodoro?", options: ["Um sistema de arquivos na nuvem", "Um método de limpeza japonesa", "Anotar tudo em um calendário físico", "Um método que divide o trabalho em blocos de foco e pausas"], answer: 3, explanation: "A técnica intercala foco intenso com pequenos momentos de descanso programado." },
+            { q: "Qual é a estrutura padrão de tempo da técnica Pomodoro?", options: ["50 min de foco / 10 min de pausa", "25 min de foco / 5 min de pausa", "1 hora de foco / sem pausa", "15 min de foco / 15 min de pausa"], answer: 1, explanation: "O padrão original utiliza blocos de 25 minutos de foco ininterrupto seguidos por 5 de descanso." },
+            { q: "Qual é o principal benefício da técnica Pomodoro?", options: ["Evitar o esgotamento mental (fadiga)", "Organizar pastas no computador", "Definir prioridades de longo prazo", "Substituir o uso de agendas"], answer: 0, explanation: "As pausas constantes mantêm o cérebro ágil e evitam o cansaço extremo." },
+            { q: "O que envolve a organização do trabalho?", options: ["Apenas manter a mesa limpa", "Apenas cumprir horários de entrada", "Definir tarefas, organizar tempo, ambiente e acompanhar atividades", "Trabalhar sempre em equipe"], answer: 2, explanation: "É um conjunto sistêmico que une planejamento mental, estrutural e execução." },
+            { q: "Qual o impacto do ambiente físico no trabalho e estudo?", options: ["Não tem impacto se o computador for bom", "Afeta diretamente a produtividade e o foco", "Impacta apenas a aparência do local", "Gera mais tarefas urgentes"], answer: 1, explanation: "Um ambiente limpo e organizado reduz distrações e facilita a concentração." },
+            { q: "O que é o método 5S?", options: ["Um aplicativo de agenda", "Um modelo de computador", "Uma técnica de pomodoro modificada", "Um método japonês para organizar e padronizar o ambiente"], answer: 3, explanation: "Os 5 princípios (Seiri, Seiton, Seiso, Seiketsu, Shitsuke) focam na eficiência do espaço físico e digital." },
+            { q: "O que propõe o Senso de Utilização (Seiri)?", options: ["Criar padrões de nomes", "Separar o necessário do desnecessário", "Limpar o chão", "Trabalhar mais rápido"], answer: 1, explanation: "O primeiro passo é descartar ou arquivar tudo o que não tem utilidade imediata." },
+            { q: "O que propõe o Senso de Organização (Seiton)?", options: ["Guardar tudo na gaveta", "Definir um lugar específico para cada item", "Limpar o computador", "Fazer backup diário"], answer: 1, explanation: "A regra é: um lugar para cada coisa e cada coisa em seu lugar." },
+            { q: "Esvaziar a lixeira e apagar downloads inúteis no PC faz parte do:", options: ["Senso de Disciplina (Shitsuke)", "Senso de Organização (Seiton)", "Senso de Limpeza (Seiso)", "Senso de Padronização (Seiketsu)"], answer: 2, explanation: "O Seiso (Limpeza) se aplica tanto ao ambiente físico quanto à 'sujeira' digital." },
+            { q: "Nomear arquivos escolares sempre no mesmo formato (ex: materia_data) aplica qual senso?", options: ["Senso de Limpeza (Seiso)", "Senso de Utilização (Seiri)", "Senso de Padronização (Seiketsu)", "Senso de Disciplina (Shitsuke)"], answer: 2, explanation: "A criação de regras fixas e padrões visuais é a base do Seiketsu." },
+            { q: "Praticar a organização como um hábito constante e diário representa o:", options: ["Senso de Disciplina (Shitsuke)", "Senso de Padronização (Seiketsu)", "Senso de Limpeza (Seiso)", "Senso de Organização (Seiton)"], answer: 0, explanation: "A disciplina é o que mantém os outros quatro sensos funcionando a longo prazo." },
+            { q: "Qual é a principal função do Google Agenda?", options: ["Editar planilhas", "Centralizar compromissos, criar alertas e evitar choques de horários", "Fazer videochamadas", "Armazenar fotos"], answer: 1, explanation: "Funciona como um 'cérebro digital' para gerenciar blocos de tempo." },
+            { q: "Qual o risco de confiar apenas na memória e não usar ferramentas de gestão?", options: ["Nenhum, a memória é mais rápida", "Ficar dependente da tecnologia", "Esquecer tarefas, perder prazos e acumular estresse", "Perder a criatividade"], answer: 2, explanation: "A memória humana é falha para gerenciar múltiplas demandas, gerando ansiedade." },
+            { q: "Qual é a melhor forma de visualização no Google Agenda para identificar espaços livres?", options: ["Visão Diária", "Visão Mensal", "Visão Semanal", "Visão Anual"], answer: 2, explanation: "A visão semanal permite enxergar a distribuição dos dias e identificar sobrecargas facilmente." },
+            { q: "O que significa quando o Google Agenda exibe blocos visuais sobrepostos?", options: ["Que o sistema travou", "Um choque/conflito de horários que precisa ser resolvido", "Que as tarefas estão concluídas", "Que as tarefas são do mesmo projeto"], answer: 1, explanation: "A sobreposição indica fisicamente que você agendou duas coisas para a mesma hora." },
+            { q: "O que é crucial considerar ao agendar tarefas em locais físicos diferentes?", options: ["A cor da tarefa", "O número de participantes", "O tempo de deslocamento", "O clima do dia"], answer: 2, explanation: "Ignorar o trânsito ou a locomoção entre eventos gera atrasos inevitáveis." },
+            { q: "Como resolver o surgimento de uma reunião urgente usando a agenda virtual?", options: ["Deletar todas as outras tarefas do dia", "Arrastar tarefas menos urgentes para outro dia ou horário para abrir espaço", "Fazer as duas coisas ao mesmo tempo", "Ignorar a reunião urgente"], answer: 1, explanation: "A flexibilidade permite reorganizar os blocos sem perder o controle do resto." },
+            { q: "O que a Matriz de Eisenhower ajuda a evitar no ambiente de trabalho?", options: ["A criação de planilhas", "Viver 'apagando incêndios' sem focar no longo prazo", "O uso de agendas", "O excesso de organização"], answer: 1, explanation: "Ela força a focar no que é importante antes que se torne uma urgência ou crise." },
+            { q: "Por que as pausas do Pomodoro (5 min) são importantes?", options: ["Para responder e-mails urgentes", "Para adiantar tarefas da faculdade", "Para descansar a mente e manter o desempenho cognitivo nas próximas sessões", "Para organizar arquivos no computador"], answer: 2, explanation: "A pausa deve ser de desconexão total para permitir a recuperação neural." }
+        ];
+
+        // Estado do Jogo
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let answered = false;
+
+        // Elementos da DOM
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const progressBar = document.getElementById('progressBar');
+        const cardInner = document.getElementById('cardInner');
+        const questionCounter = document.getElementById('questionCounter');
+        const questionText = document.getElementById('questionText');
+        const optionsContainer = document.getElementById('optionsContainer');
+        
+        // Elementos do Verso da Carta
+        const feedbackIcon = document.getElementById('feedbackIcon');
+        const feedbackTitle = document.getElementById('feedbackTitle');
+        const feedbackExplanation = document.getElementById('feedbackExplanation');
+        const nextBtn = document.getElementById('nextBtn');
+        const gameContainer = document.getElementById('gameContainer');
+        const endScreen = document.getElementById('endScreen');
+        const finalScore = document.getElementById('finalScore');
+
+        // Inicialização
+        function initGame() {
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            answered = false;
+            cardInner.classList.remove('rotate-y-180'); // Garante que a carta está de frente
+            
+            const q = questions[currentQuestionIndex];
+            questionCounter.textContent = `Questão ${currentQuestionIndex + 1} de ${questions.length}`;
+            questionText.textContent = q.q;
+            
+            // Atualiza barra de progresso
+            const progress = ((currentQuestionIndex) / questions.length) * 100;
+            progressBar.style.width = `${progress}%`;
+
+            // Renderiza opções
+            optionsContainer.innerHTML = '';
+            q.options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'w-full text-left bg-slate-50 border border-slate-200 p-4 rounded-xl hover:bg-indigo-50 hover:border-indigo-200 transition font-medium text-slate-700 active:scale-95';
+                btn.textContent = opt;
+                btn.onclick = () => handleAnswer(index);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function handleAnswer(selectedIndex) {
+            if (answered) return;
+            answered = true;
+
+            const q = questions[currentQuestionIndex];
+            const isCorrect = selectedIndex === q.answer;
+
+            if (isCorrect) {
+                score++;
+                scoreDisplay.textContent = score;
+                feedbackIcon.className = 'w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center text-4xl text-white bg-green-500 shadow-lg shadow-green-200';
+                feedbackIcon.innerHTML = '✓';
+                feedbackTitle.textContent = 'Acertou!';
+                feedbackTitle.className = 'text-2xl font-bold text-center mb-2 text-green-600';
+            } else {
+                feedbackIcon.className = 'w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center text-4xl text-white bg-red-500 shadow-lg shadow-red-200';
+                feedbackIcon.innerHTML = '✕';
+                feedbackTitle.textContent = 'Incorreto!';
+                feedbackTitle.className = 'text-2xl font-bold text-center mb-2 text-red-600';
+            }
+
+            feedbackExplanation.innerHTML = `<strong>A resposta correta era:</strong> ${q.options[q.answer]}<br><br><span class="text-slate-500">${q.explanation}</span>`;
+            
+            // Vira a carta
+            cardInner.classList.add('rotate-y-180');
+        }
+
+        nextBtn.onclick = () => {
+            currentQuestionIndex++;
+            
+            // Vira a carta de volta antes de trocar a pergunta (para evitar piscar o texto)
+            cardInner.classList.remove('rotate-y-180');
+            
+            // Aguarda a animação terminar (600ms definido no CSS) para carregar a próxima
+            setTimeout(() => {
+                if (currentQuestionIndex < questions.length) {
+                    loadQuestion();
+                } else {
+                    showEndScreen();
+                }
+            }, 300); // Metade do tempo da animação é o suficiente para não ver a troca
+        };
+
+        function showEndScreen() {
+            gameContainer.classList.add('hidden');
+            endScreen.classList.remove('hidden');
+            finalScore.textContent = score;
+            progressBar.style.width = '100%';
+        }
+
+        // Inicia o script
+        initGame();
+    </script>
+</body>
+</html>
