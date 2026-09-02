@@ -6,142 +6,140 @@
     <title>FocoPlay: Produtividade</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* --- TEMA CLEAN & SOFT --- */
+        /* Paleta de Cores Base */
         :root {
-            --bg-cream: #F8F9F4; /* Fundo Creme/Bege suave */
-            --card-white: #FFFFFF;
-            --primary-blue: #0284c7; /* Sky Blue 600 */
-            --primary-green: #0d9488; /* Teal 600 */
-            --accent-green: #10b981; /* Emerald 500 (Acerto) */
-            --accent-red: #ef4444; /* Red 500 (Erro) */
-            --accent-orange: #f59e0b; /* Amber 500 (Tempo Esgotado) */
+            --bg-bege: #F3EFE6;
+            --azul-esverdeado: #0D9488; /* Teal 600 */
+            --azul-esverdeado-hover: #0F766E; /* Teal 700 */
+            --cor-acerto: #10B981;
+            --cor-erro: #EF4444;
+            --cor-tempo: #F59E0B;
         }
 
         body {
-            background-color: var(--bg-cream);
-            color: #334155; /* Texto principal Slate 700 */
+            background-color: var(--bg-bege);
+            color: #334155;
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            overflow: hidden; /* Evita rolagem da página inteira, a rolagem será dentro da carta */
-        }
-
-        /* Estrutura Responsiva Dinâmica */
-        .game-wrapper {
-            height: 100vh;
-            height: 100dvh; /* Para navegadores mobile modernos */
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
         }
 
-        .card-container {
-            width: 100%;
-            max-width: 32rem; /* máx 512px */
-            /* A altura se adapta ao espaço restante, garantindo que não corte a tela */
-            flex: 1; 
-            max-height: 700px;
-            margin: 0 auto;
-        }
-
-        /* Mecânica 3D da Carta */
+        /* Engenharia 3D com CSS Grid (Garante responsividade sem cortar o texto) */
         .perspective-1000 { perspective: 1200px; }
-        .transform-style-3d { transform-style: preserve-3d; }
-        .backface-hidden { backface-visibility: hidden; }
-        .rotate-y-180 { transform: rotateY(180deg); }
-        .flip-card-inner { transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
-
-        /* Estilização da Carta */
-        .clean-card {
-            background: var(--card-white);
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
-            border-radius: 1.5rem; /* 24px */
+        
+        .flip-card-inner {
+            display: grid;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+            width: 100%;
         }
 
-        /* Barra de rolagem suave e fina para os botões */
-        .scrollable-content::-webkit-scrollbar { width: 6px; }
-        .scrollable-content::-webkit-scrollbar-track { background: transparent; }
-        .scrollable-content::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
+        .flip-card-front, .flip-card-back {
+            grid-area: 1 / 1;
+            backface-visibility: hidden;
+            background: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+        }
 
-        /* Timer Animado */
-        .timer-bar { transition: width 1s linear, background-color 0.3s ease; }
+        .flip-card-back {
+            transform: rotateY(180deg);
+        }
+
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+
+        /* Efeitos visuais dinâmicos */
+        .btn-opcao {
+            transition: all 0.2s ease-in-out;
+        }
+        .btn-opcao:hover {
+            border-color: var(--azul-esverdeado);
+            background-color: #F0FDFA; /* Teal 50 */
+            transform: translateY(-2px);
+        }
+        .btn-opcao:active {
+            transform: translateY(0);
+        }
     </style>
 </head>
 <body>
 
-    <div class="game-wrapper">
-        <!-- Cabeçalho -->
-        <header class="bg-white px-4 py-3 shadow-sm border-b border-slate-200 z-10">
-            <div class="max-w-md mx-auto flex justify-between items-center">
-                <h1 class="text-xl font-bold text-slate-700">Foco<span class="text-[#0284c7]">Play</span></h1>
-                <div class="text-sm font-semibold text-slate-600 bg-slate-100 px-3 py-1 rounded-lg border border-slate-200">
-                    Acertos: <span id="scoreDisplay" class="text-[#0d9488] font-bold text-base">0</span> / 30
-                </div>
+    <!-- Cabeçalho -->
+    <header class="bg-white px-4 py-4 shadow-sm border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-xl mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-black text-slate-700 uppercase tracking-tight">FOCO<span class="text-[#0D9488]">PLAY</span></h1>
+            <div class="text-sm font-bold text-slate-600 bg-slate-100 px-4 py-2 rounded-lg border border-slate-200">
+                Score: <span id="scoreDisplay" class="text-[#0D9488] font-black text-lg">0</span> / 30
             </div>
-            
-            <!-- Barra do Timer -->
-            <div class="max-w-md mx-auto mt-3 bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200">
-                <div id="timerBar" class="timer-bar bg-[#0d9488] h-full w-full"></div>
-            </div>
-            <div class="max-w-md mx-auto mt-1 flex justify-between text-xs font-bold text-slate-400">
-                <span id="timerText">20s restantes</span>
-                <span id="questionCounter">Questão 1</span>
-            </div>
-        </header>
+        </div>
+        
+        <!-- Barra de Progresso do Tempo -->
+        <div class="max-w-xl mx-auto mt-4 bg-slate-200 rounded-full h-2 overflow-hidden">
+            <div id="timerBar" class="bg-[#0D9488] h-full w-full transition-all duration-1000 ease-linear"></div>
+        </div>
+        <div class="max-w-xl mx-auto mt-1 flex justify-between text-xs font-bold text-slate-500 uppercase tracking-wide">
+            <span id="timerText">60s restantes</span>
+            <span id="questionCounter">Missão 1</span>
+        </div>
+    </header>
 
-        <!-- Área Principal de Jogo -->
-        <main class="flex-1 w-full p-4 md:p-6 flex items-center justify-center relative">
-            
-            <!-- Tela Final -->
-            <div id="endScreen" class="hidden text-center max-w-md mx-auto clean-card p-8 w-full animate-fade-in z-20 absolute">
-                <div class="w-20 h-20 mx-auto bg-[#0d9488] text-white rounded-full flex items-center justify-center text-4xl mb-4 shadow-lg shadow-teal-200">🏆</div>
-                <h2 class="text-3xl font-bold text-slate-800 mb-2">Simulado Concluído!</h2>
-                <p class="text-slate-600 mb-8 text-lg">Você acertou <strong id="finalScore" class="text-[#0d9488] text-2xl">0</strong> questões.</p>
-                <button onclick="location.reload()" class="bg-[#0284c7] text-white font-bold py-3.5 px-6 rounded-xl w-full hover:bg-sky-700 transition shadow-md active:scale-95">
-                    Reiniciar Simulado
-                </button>
-            </div>
+    <!-- Área do Jogo -->
+    <main class="flex-1 w-full p-4 flex items-start justify-center pt-8 pb-12">
+        
+        <!-- Tela Final de Resultados -->
+        <div id="endScreen" class="hidden text-center max-w-xl mx-auto bg-white p-10 rounded-3xl shadow-xl w-full border border-slate-200">
+            <div class="w-24 h-24 mx-auto bg-[#0D9488] text-white rounded-full flex items-center justify-center text-5xl mb-6 shadow-lg">🏆</div>
+            <h2 class="text-4xl font-black text-slate-800 mb-4">Finalizado!</h2>
+            <p class="text-slate-600 mb-8 text-xl">Você acertou <strong id="finalScore" class="text-[#0D9488] text-3xl">0</strong> questões no total.</p>
+            <button onclick="reiniciarJogo()" class="bg-[#0D9488] text-white font-black py-4 px-8 rounded-xl w-full hover:bg-[#0F766E] transition shadow-md uppercase tracking-wider text-lg">
+                Fazer Novo Simulado
+            </button>
+        </div>
 
-            <!-- Card Container Responsivo -->
-            <div id="gameContainer" class="card-container perspective-1000">
-                <div id="cardInner" class="w-full h-full relative transform-style-3d flip-card-inner">
-                    
-                    <!-- FRENTE: Pergunta e Alternativas -->
-                    <div class="absolute w-full h-full backface-hidden clean-card flex flex-col">
-                        <div class="p-5 md:p-6 pb-4 border-b border-slate-100 shrink-0">
-                            <h2 id="questionText" class="text-lg md:text-xl font-bold text-slate-800 leading-snug">Carregando pergunta...</h2>
-                        </div>
-                        
-                        <!-- Container rolável para alternativas (resolve o corte no celular) -->
-                        <div id="optionsContainer" class="p-4 md:p-5 flex flex-col gap-3 overflow-y-auto scrollable-content flex-1">
-                            <!-- Botões Injetados via JS -->
-                        </div>
+        <!-- Container da Carta 3D -->
+        <div id="gameContainer" class="w-full max-w-xl perspective-1000 relative">
+            <div id="cardInner" class="flip-card-inner">
+                
+                <!-- FRENTE: Pergunta -->
+                <div class="flip-card-front">
+                    <div class="p-6 md:p-8 border-b border-slate-100">
+                        <h2 id="questionText" class="text-xl md:text-2xl font-bold text-slate-800 leading-tight">Carregando...</h2>
                     </div>
-
-                    <!-- VERSO: Feedback -->
-                    <div class="absolute w-full h-full backface-hidden clean-card rotate-y-180 flex flex-col justify-between overflow-hidden">
-                        <div id="feedbackHeader" class="p-6 pb-2 text-center shrink-0">
-                            <div id="feedbackIcon" class="w-16 h-16 mx-auto mb-3 rounded-full flex items-center justify-center text-4xl text-white shadow-md"></div>
-                            <h2 id="feedbackTitle" class="text-2xl font-bold mb-1"></h2>
-                        </div>
-                        
-                        <!-- Explicação rolável caso seja muito grande -->
-                        <div class="px-6 pb-6 overflow-y-auto scrollable-content flex-1 flex items-center justify-center">
-                            <p id="feedbackExplanation" class="text-slate-600 text-center text-sm md:text-base leading-relaxed"></p>
-                        </div>
-
-                        <div class="p-5 bg-slate-50 border-t border-slate-100 rounded-b-[1.5rem] shrink-0">
-                            <button id="nextBtn" class="bg-[#0284c7] text-white font-bold py-3.5 px-6 rounded-xl w-full hover:bg-sky-700 transition shadow-md active:scale-95">
-                                Continuar
-                            </button>
-                        </div>
+                    <div id="optionsContainer" class="p-6 flex flex-col gap-4">
+                        <!-- Alternativas Injetadas via JS -->
                     </div>
-
                 </div>
+
+                <!-- VERSO: Feedback -->
+                <div class="flip-card-back">
+                    <div class="p-8 text-center flex-1 flex flex-col items-center justify-center">
+                        <div id="feedbackIcon" class="w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center text-5xl text-white shadow-md"></div>
+                        <h2 id="feedbackTitle" class="text-3xl font-black mb-4"></h2>
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 w-full mb-4 text-left">
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">A Resposta Correta é:</span>
+                            <strong id="feedbackCorrectText" class="text-slate-800 text-lg leading-snug"></strong>
+                        </div>
+                        <p id="feedbackExplanation" class="text-slate-600 text-sm md:text-base leading-relaxed text-left w-full"></p>
+                    </div>
+                    <div class="p-6 bg-slate-50 rounded-b-[1.5rem] border-t border-slate-100">
+                        <button id="nextBtn" class="bg-[#0D9488] text-white font-black py-4 px-6 rounded-xl w-full hover:bg-[#0F766E] transition shadow-md uppercase tracking-wider text-lg">
+                            Próxima Questão
+                        </button>
+                    </div>
+                </div>
+
             </div>
-        </main>
-    </div>
+        </div>
+    </main>
 
     <script>
-        // --- BASE DE DADOS (Inalterada no conteúdo, apenas a lógica de acesso mudará) ---
+        // --- BASE DE DADOS OFICIAL ---
         const originalQuestions = [
             { q: "O que é a gestão do tempo?", options: ["Fazer múltiplas tarefas ao mesmo tempo", "Planejar e priorizar o tempo dedicado a tarefas com estratégia", "Trabalhar sem pausas para terminar mais rápido", "Anotar tudo que precisa ser feito em post-its"], answer: 1, explanation: "A gestão do tempo é o ato estratégico de organizar as tarefas para cumprir prazos e reduzir o estresse diário." },
             { q: "Qual é o principal objetivo da Matriz de Eisenhower?", options: ["Organizar o ambiente físico", "Dividir tarefas em blocos de 25 minutos", "Classificar tarefas com base em urgência e importância", "Criar padrões para nomear arquivos digitais"], answer: 2, explanation: "A matriz cria quadrantes que cruzam urgência e importância para definir prioridades." },
@@ -181,8 +179,8 @@
         let score = 0;
         let answered = false;
         
-        // Timer Variables
-        const TIME_PER_QUESTION = 20; // 20 segundos
+        // Timer de 60 segundos conforme solicitado
+        const TIME_PER_QUESTION = 60; 
         let timeLeft = TIME_PER_QUESTION;
         let timerInterval;
 
@@ -196,12 +194,13 @@
         const optionsContainer = document.getElementById('optionsContainer');
         const feedbackIcon = document.getElementById('feedbackIcon');
         const feedbackTitle = document.getElementById('feedbackTitle');
+        const feedbackCorrectText = document.getElementById('feedbackCorrectText');
         const feedbackExplanation = document.getElementById('feedbackExplanation');
         const nextBtn = document.getElementById('nextBtn');
         const gameContainer = document.getElementById('gameContainer');
         const endScreen = document.getElementById('endScreen');
 
-        // Embaralhador (Algoritmo Fisher-Yates)
+        // Algoritmo de Embaralhamento (Fisher-Yates) - Garante variação total
         function shuffleArray(array) {
             let shuffled = [...array];
             for (let i = shuffled.length - 1; i > 0; i--) {
@@ -211,14 +210,21 @@
             return shuffled;
         }
 
-        // Inicialização
         function initGame() {
-            // Embaralha as questões para que nunca repita a ordem
+            // Clona e embaralha a base de dados em toda nova execução
             questions = shuffleArray(originalQuestions);
             currentQuestionIndex = 0;
             score = 0;
             scoreDisplay.textContent = '0';
+            
+            gameContainer.classList.remove('hidden');
+            endScreen.classList.add('hidden');
+            
             loadQuestion();
+        }
+
+        function reiniciarJogo() {
+            initGame();
         }
 
         function startTimer() {
@@ -242,12 +248,12 @@
             timerBar.style.width = `${percentage}%`;
             timerText.textContent = `${timeLeft}s restantes`;
 
-            // Muda de cor quando o tempo está acabando (menos de 6 segundos)
-            if (timeLeft <= 5) {
-                timerBar.style.backgroundColor = 'var(--accent-red)';
+            // Alerta visual nos últimos 10 segundos
+            if (timeLeft <= 10) {
+                timerBar.style.backgroundColor = 'var(--cor-erro)';
                 timerText.classList.add('text-red-500');
             } else {
-                timerBar.style.backgroundColor = 'var(--primary-green)';
+                timerBar.style.backgroundColor = 'var(--azul-esverdeado)';
                 timerText.classList.remove('text-red-500');
             }
         }
@@ -257,27 +263,25 @@
             cardInner.classList.remove('rotate-y-180'); 
             
             const q = questions[currentQuestionIndex];
-            questionCounter.textContent = `Questão ${currentQuestionIndex + 1} / ${questions.length}`;
+            questionCounter.textContent = `Missão ${currentQuestionIndex + 1} / ${questions.length}`;
             questionText.textContent = q.q;
             
-            // Renderiza opções com layout limpo
             optionsContainer.innerHTML = '';
             q.options.forEach((opt, index) => {
                 const btn = document.createElement('button');
-                btn.className = 'w-full text-left bg-white border border-slate-200 p-3.5 rounded-xl hover:border-[#0284c7] hover:bg-sky-50 transition-colors font-medium text-slate-700 active:scale-95 text-sm md:text-base flex items-center gap-3 shadow-sm';
-                btn.innerHTML = `<span class="shrink-0 w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500 text-xs font-bold">${String.fromCharCode(65 + index)}</span> <span>${opt}</span>`;
+                btn.className = 'btn-opcao w-full text-left bg-white border-2 border-slate-200 p-4 rounded-xl font-semibold text-slate-700 text-sm md:text-base flex items-center gap-4 cursor-pointer';
+                btn.innerHTML = `<span class="shrink-0 w-8 h-8 rounded-full bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-600 font-black">${String.fromCharCode(65 + index)}</span> <span class="leading-snug">${opt}</span>`;
                 btn.onclick = () => handleAnswer(index);
                 optionsContainer.appendChild(btn);
             });
 
-            // Aguarda a animação da carta para reiniciar o tempo
-            setTimeout(startTimer, 300);
+            setTimeout(startTimer, 400); // Dá tempo para a carta desvirar antes de iniciar o relógio
         }
 
         function handleAnswer(selectedIndex) {
             if (answered) return;
             answered = true;
-            clearInterval(timerInterval); // Para o relógio
+            clearInterval(timerInterval);
 
             const q = questions[currentQuestionIndex];
             const isCorrect = selectedIndex === q.answer;
@@ -297,24 +301,26 @@
             if (status === 'correct') {
                 score++;
                 scoreDisplay.textContent = score;
-                feedbackIcon.className = 'w-16 h-16 mx-auto mb-3 rounded-full flex items-center justify-center text-4xl text-white shadow-md bg-[#10b981] shadow-emerald-200';
+                feedbackIcon.className = 'w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center text-5xl text-white shadow-md bg-[#10B981]';
                 feedbackIcon.innerHTML = '✓';
-                feedbackTitle.textContent = 'Acertou!';
-                feedbackTitle.className = 'text-2xl font-bold mb-1 text-[#10b981]';
+                feedbackTitle.textContent = 'MUITO BEM!';
+                feedbackTitle.className = 'text-3xl font-black mb-4 text-[#10B981]';
             } else if (status === 'incorrect') {
-                feedbackIcon.className = 'w-16 h-16 mx-auto mb-3 rounded-full flex items-center justify-center text-4xl text-white shadow-md bg-[#ef4444] shadow-red-200';
+                feedbackIcon.className = 'w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center text-5xl text-white shadow-md bg-[#EF4444]';
                 feedbackIcon.innerHTML = '✕';
-                feedbackTitle.textContent = 'Ops, Incorreto!';
-                feedbackTitle.className = 'text-2xl font-bold mb-1 text-[#ef4444]';
+                feedbackTitle.textContent = 'INCORRETO!';
+                feedbackTitle.className = 'text-3xl font-black mb-4 text-[#EF4444]';
             } else if (status === 'timeout') {
-                feedbackIcon.className = 'w-16 h-16 mx-auto mb-3 rounded-full flex items-center justify-center text-4xl text-white shadow-md bg-[#f59e0b] shadow-amber-200';
+                feedbackIcon.className = 'w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center text-5xl text-white shadow-md bg-[#F59E0B]';
                 feedbackIcon.innerHTML = '⏱️';
-                feedbackTitle.textContent = 'Tempo Esgotado!';
-                feedbackTitle.className = 'text-2xl font-bold mb-1 text-[#f59e0b]';
+                feedbackTitle.textContent = 'TEMPO ESGOTADO!';
+                feedbackTitle.className = 'text-3xl font-black mb-4 text-[#F59E0B]';
             }
 
-            feedbackExplanation.innerHTML = `<strong class="text-slate-700">A resposta correta era:</strong><br><span class="text-slate-800 bg-slate-100 p-2 rounded block mt-1 mb-3 border border-slate-200">${questionData.options[questionData.answer]}</span> <span class="text-slate-600 block leading-relaxed">${questionData.explanation}</span>`;
+            feedbackCorrectText.textContent = questionData.options[questionData.answer];
+            feedbackExplanation.textContent = questionData.explanation;
             
+            // Ativa o flip 3D
             cardInner.classList.add('rotate-y-180');
         }
 
@@ -328,7 +334,7 @@
                 } else {
                     showEndScreen();
                 }
-            }, 300); 
+            }, 400); 
         };
 
         function showEndScreen() {
@@ -338,7 +344,7 @@
             document.getElementById('finalScore').textContent = score;
         }
 
-        // Inicia
+        // Executa o início do jogo ao carregar a página
         initGame();
     </script>
 </body>
