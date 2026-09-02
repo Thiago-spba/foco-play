@@ -3,67 +3,131 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulado Gamificado: Produtividade</title>
+    <title>FocoPlay: Trilha da Produtividade</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Classes utilitárias para a animação 3D da carta */
-        .perspective-1000 { perspective: 1000px; }
+        /* --- ESTILOS PERSONALIZADOS PREMIUM --- */
+        
+        :root {
+            --bg-deep: #0a1020; /* Fundo super escuro */
+            --primary: #3b82f6; /* Sapphire Blue */
+            --secondary: #ef4444; /* Ruby Red */
+            --accent: #a3e635; /* Lime Green */
+            --yellow: #facc15; /* Sunshine Yellow */
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: #e2e8f0;
+            overflow-x: hidden;
+            background-image: radial-gradient(circle at 50% 50%, #151f35 0%, var(--bg-deep) 70%);
+        }
+
+        /* Mecânica 3D da Carta */
+        .perspective-1000 { perspective: 1200px; }
         .transform-style-3d { transform-style: preserve-3d; }
         .backface-hidden { backface-visibility: hidden; }
         .rotate-y-180 { transform: rotateY(180deg); }
-        .flip-card-inner { transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1); }
+        .flip-card-inner { transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1); }
+
+        /* Estilização Vibrante */
+        .vibrant-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            border-radius: 24px;
+        }
+
+        .neon-glow-primary { box-shadow: 0 0 15px rgba(59, 130, 246, 0.5); border-color: rgba(59, 130, 246, 0.6); }
+        .neon-glow-secondary { box-shadow: 0 0 15px rgba(239, 68, 68, 0.5); border-color: rgba(239, 68, 68, 0.6); }
+        .neon-glow-accent { box-shadow: 0 0 15px rgba(163, 230, 53, 0.5); border-color: rgba(163, 230, 53, 0.6); }
+
+        /* Animações de Movimento (Pulsing) */
+        @keyframes pulsingGlow {
+            0% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.4); }
+            50% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.8); }
+            100% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.4); }
+        }
+
+        .pulse-interact { animation: pulsingGlow 2s infinite; }
+
+        /* Custom Scrollbar */
+        #optionsContainer::-webkit-scrollbar { width: 6px; }
+        #optionsContainer::-webkit-scrollbar-thumb { background-color: rgba(255, 255, 255, 0.1); border-radius: 3px; }
+        
+        /* Botões Estilizados */
+        .btn-option {
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-option::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0) 100%);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+
+        .btn-option:hover::after { transform: translateX(100%); }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col">
+<body class="min-h-screen flex flex-col font-sans">
 
-    <!-- Cabeçalho de Progresso -->
-    <header class="bg-indigo-600 text-white p-4 shadow-md sticky top-0 z-10">
+    <!-- Cabeçalho Vibrante sticky -->
+    <header class="bg-deep vibrant-card p-4 shadow-lg sticky top-0 z-20 neon-glow-primary rounded-t-none">
         <div class="max-w-md mx-auto flex justify-between items-center">
-            <h1 class="text-lg font-bold">Trilha da Produtividade</h1>
-            <div class="text-sm font-medium bg-indigo-800 px-3 py-1 rounded-full">
-                Score: <span id="scoreDisplay">0</span> / 30
+            <h1 class="text-xl font-extrabold text-white tracking-tight">FOCO<span class="text-primary">PLAY</span></h1>
+            <div class="text-sm font-bold bg-white/5 px-4 py-1.5 rounded-full border border-white/10 flex items-center gap-2">
+                <span class="text-white/70">SCORE:</span> <span id="scoreDisplay" class="text-yellow text-lg">0</span> / 30
             </div>
         </div>
-        <div class="max-w-md mx-auto mt-2 bg-indigo-800 rounded-full h-2 overflow-hidden">
-            <div id="progressBar" class="bg-green-400 h-2 w-0 transition-all duration-300"></div>
+        <div class="max-w-md mx-auto mt-3 bg-white/5 rounded-full h-2.5 overflow-hidden border border-white/10 pulse-interact">
+            <div id="progressBar" class="bg-gradient-to-r from-primary to-accent h-2.5 w-0 transition-all duration-400 rounded-full"></div>
         </div>
     </header>
 
-    <!-- Container Principal do Jogo -->
-    <main class="flex-1 flex items-center justify-center p-4">
+    <!-- Área de Jogo Principal -->
+    <main class="flex-1 flex items-center justify-center p-4 relative">
         
         <!-- Tela Final (Oculta por padrão) -->
-        <div id="endScreen" class="hidden text-center max-w-md mx-auto bg-white p-8 rounded-2xl shadow-xl w-full">
-            <h2 class="text-3xl font-bold text-indigo-600 mb-4">Simulado Concluído!</h2>
-            <p class="text-lg mb-6">Você acertou <strong id="finalScore" class="text-indigo-600"></strong> de 30 questões.</p>
-            <button onclick="location.reload()" class="bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg w-full hover:bg-indigo-700 transition">Tentar Novamente</button>
+        <div id="endScreen" class="hidden text-center max-w-md mx-auto vibrant-card p-10 shadow-2xl w-full neon-glow-accent animate-pulse">
+            <h2 class="text-4xl font-extrabold text-accent mb-5 tracking-tighter">TRILHA CONCLUÍDA!</h2>
+            <p class="text-xl mb-8 text-white/90">Você alcançou <strong id="finalScore" class="text-yellow text-3xl"></strong> de 30 acertos.</p>
+            <button onclick="location.reload()" class="bg-accent text-bg-deep font-extrabold py-4 px-8 rounded-xl w-full hover:scale-105 transition transform active:scale-95 text-lg">
+                JOGAR NOVAMENTE
+            </button>
         </div>
 
-        <!-- Área da Carta -->
-        <div id="gameContainer" class="w-full max-w-md perspective-1000 h-[450px]">
+        <!-- Container da Carta 3D -->
+        <div id="gameContainer" class="w-full max-w-md perspective-1000 h-[500px]">
             <div id="cardInner" class="w-full h-full relative transform-style-3d flip-card-inner">
                 
                 <!-- Frente da Carta (Pergunta) -->
-                <div class="absolute w-full h-full backface-hidden bg-white rounded-2xl shadow-xl border border-slate-200 flex flex-col">
-                    <div class="p-6 border-b border-slate-100">
-                        <span id="questionCounter" class="text-xs font-bold text-indigo-500 uppercase tracking-wider mb-2 block">Questão 1 de 30</span>
-                        <h2 id="questionText" class="text-xl font-bold text-slate-800 leading-tight">Carregando pergunta...</h2>
+                <div class="absolute w-full h-full backface-hidden vibrant-card flex flex-col neon-glow-primary">
+                    <div class="p-7 border-b border-white/10">
+                        <span id="questionCounter" class="text-xs font-bold text-primary uppercase tracking-widest mb-2.5 block">QUESTÃO 1 DE 30</span>
+                        <h2 id="questionText" class="text-2xl font-bold text-white leading-tight tracking-tight">Carregando pergunta premium...</h2>
                     </div>
-                    <div id="optionsContainer" class="p-4 flex flex-col gap-3 overflow-y-auto">
+                    <div id="optionsContainer" class="p-5 flex flex-col gap-3.5 overflow-y-auto flex-1">
                         <!-- Botões de alternativa injetados via JS -->
                     </div>
                 </div>
 
-                <!-- Verso da Carta (Resposta/Feedback) -->
-                <div class="absolute w-full h-full backface-hidden bg-white rounded-2xl shadow-xl border border-slate-200 rotate-y-180 flex flex-col justify-between">
-                    <div class="p-6">
-                        <div id="feedbackIcon" class="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center text-3xl text-white"></div>
-                        <h2 id="feedbackTitle" class="text-2xl font-bold text-center mb-2"></h2>
-                        <p id="feedbackExplanation" class="text-slate-600 text-center text-sm mb-4"></p>
+                <!-- Verso da Carta (Feedback) -->
+                <div class="absolute w-full h-full backface-hidden vibrant-card rotate-y-180 flex flex-col justify-between overflow-hidden">
+                    <div id="feedbackBorder" class="h-2 w-full absolute top-0 left-0"></div> <!-- Borda dinâmica de acerto/erro -->
+                    <div class="p-8 pt-10 text-center flex-1">
+                        <div id="feedbackIcon" class="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center text-5xl text-white shadow-xl"></div>
+                        <h2 id="feedbackTitle" class="text-3xl font-extrabold mb-3 tracking-tighter"></h2>
+                        <p id="feedbackExplanation" class="text-white/80 text-center text-sm mb-5 leading-relaxed"></p>
                     </div>
-                    <div class="p-6 bg-slate-50 rounded-b-2xl">
-                        <button id="nextBtn" class="bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg w-full hover:bg-indigo-700 transition active:scale-95">
-                            Próxima Questão
+                    <div class="p-7 bg-white/5 border-t border-white/10 rounded-b-3xl">
+                        <button id="nextBtn" class="bg-primary text-white font-extrabold py-4 px-8 rounded-xl w-full hover:bg-blue-600 transition transform active:scale-95 text-lg">
+                            PRÓXIMA MISSÃO
                         </button>
                     </div>
                 </div>
@@ -73,7 +137,8 @@
     </main>
 
     <script>
-        // Banco de Questões (30) extraído da base teórica
+        // --- BASE DE DADOS VIBRANTE (30 QUESTÕES REVISADAS) ---
+        // (O banco de dados permanece o mesmo do passo anterior para consistência pedagógica)
         const questions = [
             { q: "O que é a gestão do tempo?", options: ["Fazer múltiplas tarefas ao mesmo tempo", "Planejar e priorizar o tempo dedicado a tarefas com estratégia", "Trabalhar sem pausas para terminar mais rápido", "Anotar tudo que precisa ser feito em post-its"], answer: 1, explanation: "A gestão do tempo é o ato estratégico de organizar as tarefas para cumprir prazos e reduzir o estresse diário." },
             { q: "Qual é o principal objetivo da Matriz de Eisenhower?", options: ["Organizar o ambiente físico", "Dividir tarefas em blocos de 25 minutos", "Classificar tarefas com base em urgência e importância", "Criar padrões para nomear arquivos digitais"], answer: 2, explanation: "A matriz cria quadrantes que cruzam urgência e importância para definir prioridades." },
@@ -102,12 +167,12 @@
             { q: "Qual é a melhor forma de visualização no Google Agenda para identificar espaços livres?", options: ["Visão Diária", "Visão Mensal", "Visão Semanal", "Visão Anual"], answer: 2, explanation: "A visão semanal permite enxergar a distribuição dos dias e identificar sobrecargas facilmente." },
             { q: "O que significa quando o Google Agenda exibe blocos visuais sobrepostos?", options: ["Que o sistema travou", "Um choque/conflito de horários que precisa ser resolvido", "Que as tarefas estão concluídas", "Que as tarefas são do mesmo projeto"], answer: 1, explanation: "A sobreposição indica fisicamente que você agendou duas coisas para a mesma hora." },
             { q: "O que é crucial considerar ao agendar tarefas em locais físicos diferentes?", options: ["A cor da tarefa", "O número de participantes", "O tempo de deslocamento", "O clima do dia"], answer: 2, explanation: "Ignorar o trânsito ou a locomoção entre eventos gera atrasos inevitáveis." },
-            { q: "Como resolver o surgimento de uma reunião urgente usando a agenda virtual?", options: ["Deletar todas as outras tarefas do dia", "Arrastar tarefas menos urgentes para outro dia ou horário para abrir espaço", "Fazer as duas coisas ao mesmo tempo", "Ignorar a reunião urgente"], answer: 1, explanation: "A flexibilidade permite reorganizar os blocos sem perder o controle do resto." },
+            { q: "Como resolver o surgimento de uma reunião urgente usando a agenda virtual?", options: ["Deletar todas as outras tarefas do dia", "Arrastar tarefas menos urgentes para outro dia ou horário para abrir espaço", "Fazer as duas coisas ao mesmo tempo", "Ignorar a reunião urgente"], answer: 1, explanation: "A redução de tempo de tarefas menos urgentes é a chave." },
             { q: "O que a Matriz de Eisenhower ajuda a evitar no ambiente de trabalho?", options: ["A criação de planilhas", "Viver 'apagando incêndios' sem focar no longo prazo", "O uso de agendas", "O excesso de organização"], answer: 1, explanation: "Ela força a focar no que é importante antes que se torne uma urgência ou crise." },
             { q: "Por que as pausas do Pomodoro (5 min) são importantes?", options: ["Para responder e-mails urgentes", "Para adiantar tarefas da faculdade", "Para descansar a mente e manter o desempenho cognitivo nas próximas sessões", "Para organizar arquivos no computador"], answer: 2, explanation: "A pausa deve ser de desconexão total para permitir a recuperação neural." }
         ];
 
-        // Estado do Jogo
+        // --- LÓGICA DE JOGO VIBRANTE ---
         let currentQuestionIndex = 0;
         let score = 0;
         let answered = false;
@@ -121,6 +186,7 @@
         const optionsContainer = document.getElementById('optionsContainer');
         
         // Elementos do Verso da Carta
+        const feedbackBorder = document.getElementById('feedbackBorder');
         const feedbackIcon = document.getElementById('feedbackIcon');
         const feedbackTitle = document.getElementById('feedbackTitle');
         const feedbackExplanation = document.getElementById('feedbackExplanation');
@@ -129,29 +195,29 @@
         const endScreen = document.getElementById('endScreen');
         const finalScore = document.getElementById('finalScore');
 
-        // Inicialização
         function initGame() {
             loadQuestion();
         }
 
         function loadQuestion() {
             answered = false;
-            cardInner.classList.remove('rotate-y-180'); // Garante que a carta está de frente
+            cardInner.classList.remove('rotate-y-180'); 
             
             const q = questions[currentQuestionIndex];
-            questionCounter.textContent = `Questão ${currentQuestionIndex + 1} de ${questions.length}`;
+            questionCounter.textContent = `MISSÃO ${currentQuestionIndex + 1} DE ${questions.length}`;
             questionText.textContent = q.q;
             
-            // Atualiza barra de progresso
+            // Atualiza barra de progresso vibrante
             const progress = ((currentQuestionIndex) / questions.length) * 100;
             progressBar.style.width = `${progress}%`;
 
-            // Renderiza opções
+            // Renderiza opções estilizadas
             optionsContainer.innerHTML = '';
             q.options.forEach((opt, index) => {
                 const btn = document.createElement('button');
-                btn.className = 'w-full text-left bg-slate-50 border border-slate-200 p-4 rounded-xl hover:bg-indigo-50 hover:border-indigo-200 transition font-medium text-slate-700 active:scale-95';
-                btn.textContent = opt;
+                // Classes de botão de opção estilizadas (Dark Mode com hover neon)
+                btn.className = 'btn-option w-full text-left bg-white/5 border border-white/10 p-5 rounded-2xl hover:bg-white/10 hover:border-white/20 transition-all font-semibold text-white active:scale-95 text-md shadow-inner flex gap-3 items-center';
+                btn.innerHTML = `<span class="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center text-white/50 text-xs font-bold">${String.fromCharCode(65 + index)}</span> <span>${opt}</span>`;
                 btn.onclick = () => handleAnswer(index);
                 optionsContainer.appendChild(btn);
             });
@@ -164,50 +230,59 @@
             const q = questions[currentQuestionIndex];
             const isCorrect = selectedIndex === q.answer;
 
+            // Define feedback vibrante de acerto/erro
             if (isCorrect) {
                 score++;
                 scoreDisplay.textContent = score;
-                feedbackIcon.className = 'w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center text-4xl text-white bg-green-500 shadow-lg shadow-green-200';
+                feedbackBorder.className = 'h-2 w-full absolute top-0 left-0 bg-accent';
+                feedbackIcon.className = 'w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center text-5xl text-white bg-accent shadow-lg shadow-accent/40';
                 feedbackIcon.innerHTML = '✓';
-                feedbackTitle.textContent = 'Acertou!';
-                feedbackTitle.className = 'text-2xl font-bold text-center mb-2 text-green-600';
+                feedbackTitle.textContent = 'MUITO BEM!';
+                feedbackTitle.className = 'text-3xl font-extrabold mb-3 tracking-tighter text-accent';
+                feedbackBorder.parentElement.classList.add('neon-glow-accent');
+                feedbackBorder.parentElement.classList.remove('neon-glow-secondary');
             } else {
-                feedbackIcon.className = 'w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center text-4xl text-white bg-red-500 shadow-lg shadow-red-200';
+                feedbackBorder.className = 'h-2 w-full absolute top-0 left-0 bg-secondary';
+                feedbackIcon.className = 'w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center text-5xl text-white bg-secondary shadow-lg shadow-secondary/40';
                 feedbackIcon.innerHTML = '✕';
-                feedbackTitle.textContent = 'Incorreto!';
-                feedbackTitle.className = 'text-2xl font-bold text-center mb-2 text-red-600';
+                feedbackTitle.textContent = 'OPS, QUASE!';
+                feedbackTitle.className = 'text-3xl font-extrabold mb-3 tracking-tighter text-secondary';
+                feedbackBorder.parentElement.classList.add('neon-glow-secondary');
+                feedbackBorder.parentElement.classList.remove('neon-glow-accent');
             }
 
-            feedbackExplanation.innerHTML = `<strong>A resposta correta era:</strong> ${q.options[q.answer]}<br><br><span class="text-slate-500">${q.explanation}</span>`;
+            feedbackExplanation.innerHTML = `<strong class="text-white">A resposta correta era:</strong> ${q.options[q.answer]}<br><br><span class="text-white/60 leading-relaxed">${q.explanation}</span>`;
             
-            // Vira a carta
+            // Vira a carta 3D suavemente
             cardInner.classList.add('rotate-y-180');
         }
 
         nextBtn.onclick = () => {
             currentQuestionIndex++;
             
-            // Vira a carta de volta antes de trocar a pergunta (para evitar piscar o texto)
+            // Vira a carta de volta antes de trocar a pergunta (para evitar piscar o texto anterior)
             cardInner.classList.remove('rotate-y-180');
             
-            // Aguarda a animação terminar (600ms definido no CSS) para carregar a próxima
+            // Aguarda a animação de rotação terminar (700ms definido no CSS) para carregar a próxima
             setTimeout(() => {
                 if (currentQuestionIndex < questions.length) {
                     loadQuestion();
                 } else {
                     showEndScreen();
                 }
-            }, 300); // Metade do tempo da animação é o suficiente para não ver a troca
+            }, 350); 
         };
 
         function showEndScreen() {
+            // Oculta área de jogo e exibe tela final de alta qualidade
             gameContainer.classList.add('hidden');
             endScreen.classList.remove('hidden');
+            endScreen.parentElement.classList.add('animate-pulse');
             finalScore.textContent = score;
             progressBar.style.width = '100%';
         }
 
-        // Inicia o script
+        // Inicia o roteiro
         initGame();
     </script>
 </body>
