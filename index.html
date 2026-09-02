@@ -2,25 +2,43 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FocoPlay: Trilha da Produtividade</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FocoPlay: Produtividade</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* --- ESTILOS PERSONALIZADOS PREMIUM --- */
-        
+        /* --- TEMA CLEAN & SOFT --- */
         :root {
-            --bg-deep: #0a1020; /* Fundo super escuro */
-            --primary: #3b82f6; /* Sapphire Blue */
-            --secondary: #ef4444; /* Ruby Red */
-            --accent: #a3e635; /* Lime Green */
-            --yellow: #facc15; /* Sunshine Yellow */
+            --bg-cream: #F8F9F4; /* Fundo Creme/Bege suave */
+            --card-white: #FFFFFF;
+            --primary-blue: #0284c7; /* Sky Blue 600 */
+            --primary-green: #0d9488; /* Teal 600 */
+            --accent-green: #10b981; /* Emerald 500 (Acerto) */
+            --accent-red: #ef4444; /* Red 500 (Erro) */
+            --accent-orange: #f59e0b; /* Amber 500 (Tempo Esgotado) */
         }
 
         body {
-            background-color: var(--bg-deep);
-            color: #e2e8f0;
-            overflow-x: hidden;
-            background-image: radial-gradient(circle at 50% 50%, #151f35 0%, var(--bg-deep) 70%);
+            background-color: var(--bg-cream);
+            color: #334155; /* Texto principal Slate 700 */
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            overflow: hidden; /* Evita rolagem da página inteira, a rolagem será dentro da carta */
+        }
+
+        /* Estrutura Responsiva Dinâmica */
+        .game-wrapper {
+            height: 100vh;
+            height: 100dvh; /* Para navegadores mobile modernos */
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-container {
+            width: 100%;
+            max-width: 32rem; /* máx 512px */
+            /* A altura se adapta ao espaço restante, garantindo que não corte a tela */
+            flex: 1; 
+            max-height: 700px;
+            margin: 0 auto;
         }
 
         /* Mecânica 3D da Carta */
@@ -28,118 +46,103 @@
         .transform-style-3d { transform-style: preserve-3d; }
         .backface-hidden { backface-visibility: hidden; }
         .rotate-y-180 { transform: rotateY(180deg); }
-        .flip-card-inner { transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1); }
+        .flip-card-inner { transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
 
-        /* Estilização Vibrante */
-        .vibrant-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(12px);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-            border-radius: 24px;
+        /* Estilização da Carta */
+        .clean-card {
+            background: var(--card-white);
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+            border-radius: 1.5rem; /* 24px */
         }
 
-        .neon-glow-primary { box-shadow: 0 0 15px rgba(59, 130, 246, 0.5); border-color: rgba(59, 130, 246, 0.6); }
-        .neon-glow-secondary { box-shadow: 0 0 15px rgba(239, 68, 68, 0.5); border-color: rgba(239, 68, 68, 0.6); }
-        .neon-glow-accent { box-shadow: 0 0 15px rgba(163, 230, 53, 0.5); border-color: rgba(163, 230, 53, 0.6); }
+        /* Barra de rolagem suave e fina para os botões */
+        .scrollable-content::-webkit-scrollbar { width: 6px; }
+        .scrollable-content::-webkit-scrollbar-track { background: transparent; }
+        .scrollable-content::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
 
-        /* Animações de Movimento (Pulsing) */
-        @keyframes pulsingGlow {
-            0% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.4); }
-            50% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.8); }
-            100% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.4); }
-        }
-
-        .pulse-interact { animation: pulsingGlow 2s infinite; }
-
-        /* Custom Scrollbar */
-        #optionsContainer::-webkit-scrollbar { width: 6px; }
-        #optionsContainer::-webkit-scrollbar-thumb { background-color: rgba(255, 255, 255, 0.1); border-radius: 3px; }
-        
-        /* Botões Estilizados */
-        .btn-option {
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn-option::after {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0) 100%);
-            transform: translateX(-100%);
-            transition: transform 0.6s ease;
-        }
-
-        .btn-option:hover::after { transform: translateX(100%); }
+        /* Timer Animado */
+        .timer-bar { transition: width 1s linear, background-color 0.3s ease; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col font-sans">
+<body>
 
-    <!-- Cabeçalho Vibrante sticky -->
-    <header class="bg-deep vibrant-card p-4 shadow-lg sticky top-0 z-20 neon-glow-primary rounded-t-none">
-        <div class="max-w-md mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-extrabold text-white tracking-tight">FOCO<span class="text-primary">PLAY</span></h1>
-            <div class="text-sm font-bold bg-white/5 px-4 py-1.5 rounded-full border border-white/10 flex items-center gap-2">
-                <span class="text-white/70">SCORE:</span> <span id="scoreDisplay" class="text-yellow text-lg">0</span> / 30
-            </div>
-        </div>
-        <div class="max-w-md mx-auto mt-3 bg-white/5 rounded-full h-2.5 overflow-hidden border border-white/10 pulse-interact">
-            <div id="progressBar" class="bg-gradient-to-r from-primary to-accent h-2.5 w-0 transition-all duration-400 rounded-full"></div>
-        </div>
-    </header>
-
-    <!-- Área de Jogo Principal -->
-    <main class="flex-1 flex items-center justify-center p-4 relative">
-        
-        <!-- Tela Final (Oculta por padrão) -->
-        <div id="endScreen" class="hidden text-center max-w-md mx-auto vibrant-card p-10 shadow-2xl w-full neon-glow-accent animate-pulse">
-            <h2 class="text-4xl font-extrabold text-accent mb-5 tracking-tighter">TRILHA CONCLUÍDA!</h2>
-            <p class="text-xl mb-8 text-white/90">Você alcançou <strong id="finalScore" class="text-yellow text-3xl"></strong> de 30 acertos.</p>
-            <button onclick="location.reload()" class="bg-accent text-bg-deep font-extrabold py-4 px-8 rounded-xl w-full hover:scale-105 transition transform active:scale-95 text-lg">
-                JOGAR NOVAMENTE
-            </button>
-        </div>
-
-        <!-- Container da Carta 3D -->
-        <div id="gameContainer" class="w-full max-w-md perspective-1000 h-[500px]">
-            <div id="cardInner" class="w-full h-full relative transform-style-3d flip-card-inner">
-                
-                <!-- Frente da Carta (Pergunta) -->
-                <div class="absolute w-full h-full backface-hidden vibrant-card flex flex-col neon-glow-primary">
-                    <div class="p-7 border-b border-white/10">
-                        <span id="questionCounter" class="text-xs font-bold text-primary uppercase tracking-widest mb-2.5 block">QUESTÃO 1 DE 30</span>
-                        <h2 id="questionText" class="text-2xl font-bold text-white leading-tight tracking-tight">Carregando pergunta premium...</h2>
-                    </div>
-                    <div id="optionsContainer" class="p-5 flex flex-col gap-3.5 overflow-y-auto flex-1">
-                        <!-- Botões de alternativa injetados via JS -->
-                    </div>
+    <div class="game-wrapper">
+        <!-- Cabeçalho -->
+        <header class="bg-white px-4 py-3 shadow-sm border-b border-slate-200 z-10">
+            <div class="max-w-md mx-auto flex justify-between items-center">
+                <h1 class="text-xl font-bold text-slate-700">Foco<span class="text-[#0284c7]">Play</span></h1>
+                <div class="text-sm font-semibold text-slate-600 bg-slate-100 px-3 py-1 rounded-lg border border-slate-200">
+                    Acertos: <span id="scoreDisplay" class="text-[#0d9488] font-bold text-base">0</span> / 30
                 </div>
-
-                <!-- Verso da Carta (Feedback) -->
-                <div class="absolute w-full h-full backface-hidden vibrant-card rotate-y-180 flex flex-col justify-between overflow-hidden">
-                    <div id="feedbackBorder" class="h-2 w-full absolute top-0 left-0"></div> <!-- Borda dinâmica de acerto/erro -->
-                    <div class="p-8 pt-10 text-center flex-1">
-                        <div id="feedbackIcon" class="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center text-5xl text-white shadow-xl"></div>
-                        <h2 id="feedbackTitle" class="text-3xl font-extrabold mb-3 tracking-tighter"></h2>
-                        <p id="feedbackExplanation" class="text-white/80 text-center text-sm mb-5 leading-relaxed"></p>
-                    </div>
-                    <div class="p-7 bg-white/5 border-t border-white/10 rounded-b-3xl">
-                        <button id="nextBtn" class="bg-primary text-white font-extrabold py-4 px-8 rounded-xl w-full hover:bg-blue-600 transition transform active:scale-95 text-lg">
-                            PRÓXIMA MISSÃO
-                        </button>
-                    </div>
-                </div>
-
             </div>
-        </div>
-    </main>
+            
+            <!-- Barra do Timer -->
+            <div class="max-w-md mx-auto mt-3 bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200">
+                <div id="timerBar" class="timer-bar bg-[#0d9488] h-full w-full"></div>
+            </div>
+            <div class="max-w-md mx-auto mt-1 flex justify-between text-xs font-bold text-slate-400">
+                <span id="timerText">20s restantes</span>
+                <span id="questionCounter">Questão 1</span>
+            </div>
+        </header>
+
+        <!-- Área Principal de Jogo -->
+        <main class="flex-1 w-full p-4 md:p-6 flex items-center justify-center relative">
+            
+            <!-- Tela Final -->
+            <div id="endScreen" class="hidden text-center max-w-md mx-auto clean-card p-8 w-full animate-fade-in z-20 absolute">
+                <div class="w-20 h-20 mx-auto bg-[#0d9488] text-white rounded-full flex items-center justify-center text-4xl mb-4 shadow-lg shadow-teal-200">🏆</div>
+                <h2 class="text-3xl font-bold text-slate-800 mb-2">Simulado Concluído!</h2>
+                <p class="text-slate-600 mb-8 text-lg">Você acertou <strong id="finalScore" class="text-[#0d9488] text-2xl">0</strong> questões.</p>
+                <button onclick="location.reload()" class="bg-[#0284c7] text-white font-bold py-3.5 px-6 rounded-xl w-full hover:bg-sky-700 transition shadow-md active:scale-95">
+                    Reiniciar Simulado
+                </button>
+            </div>
+
+            <!-- Card Container Responsivo -->
+            <div id="gameContainer" class="card-container perspective-1000">
+                <div id="cardInner" class="w-full h-full relative transform-style-3d flip-card-inner">
+                    
+                    <!-- FRENTE: Pergunta e Alternativas -->
+                    <div class="absolute w-full h-full backface-hidden clean-card flex flex-col">
+                        <div class="p-5 md:p-6 pb-4 border-b border-slate-100 shrink-0">
+                            <h2 id="questionText" class="text-lg md:text-xl font-bold text-slate-800 leading-snug">Carregando pergunta...</h2>
+                        </div>
+                        
+                        <!-- Container rolável para alternativas (resolve o corte no celular) -->
+                        <div id="optionsContainer" class="p-4 md:p-5 flex flex-col gap-3 overflow-y-auto scrollable-content flex-1">
+                            <!-- Botões Injetados via JS -->
+                        </div>
+                    </div>
+
+                    <!-- VERSO: Feedback -->
+                    <div class="absolute w-full h-full backface-hidden clean-card rotate-y-180 flex flex-col justify-between overflow-hidden">
+                        <div id="feedbackHeader" class="p-6 pb-2 text-center shrink-0">
+                            <div id="feedbackIcon" class="w-16 h-16 mx-auto mb-3 rounded-full flex items-center justify-center text-4xl text-white shadow-md"></div>
+                            <h2 id="feedbackTitle" class="text-2xl font-bold mb-1"></h2>
+                        </div>
+                        
+                        <!-- Explicação rolável caso seja muito grande -->
+                        <div class="px-6 pb-6 overflow-y-auto scrollable-content flex-1 flex items-center justify-center">
+                            <p id="feedbackExplanation" class="text-slate-600 text-center text-sm md:text-base leading-relaxed"></p>
+                        </div>
+
+                        <div class="p-5 bg-slate-50 border-t border-slate-100 rounded-b-[1.5rem] shrink-0">
+                            <button id="nextBtn" class="bg-[#0284c7] text-white font-bold py-3.5 px-6 rounded-xl w-full hover:bg-sky-700 transition shadow-md active:scale-95">
+                                Continuar
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
 
     <script>
-        // --- BASE DE DADOS VIBRANTE (30 QUESTÕES REVISADAS) ---
-        // (O banco de dados permanece o mesmo do passo anterior para consistência pedagógica)
-        const questions = [
+        // --- BASE DE DADOS (Inalterada no conteúdo, apenas a lógica de acesso mudará) ---
+        const originalQuestions = [
             { q: "O que é a gestão do tempo?", options: ["Fazer múltiplas tarefas ao mesmo tempo", "Planejar e priorizar o tempo dedicado a tarefas com estratégia", "Trabalhar sem pausas para terminar mais rápido", "Anotar tudo que precisa ser feito em post-its"], answer: 1, explanation: "A gestão do tempo é o ato estratégico de organizar as tarefas para cumprir prazos e reduzir o estresse diário." },
             { q: "Qual é o principal objetivo da Matriz de Eisenhower?", options: ["Organizar o ambiente físico", "Dividir tarefas em blocos de 25 minutos", "Classificar tarefas com base em urgência e importância", "Criar padrões para nomear arquivos digitais"], answer: 2, explanation: "A matriz cria quadrantes que cruzam urgência e importância para definir prioridades." },
             { q: "Na Matriz de Eisenhower, o que fazer com uma tarefa 'Importante e Urgente'?", options: ["Agendar para depois", "Delegar para outra pessoa", "Eliminar da rotina", "Fazer imediatamente (Faça agora)"], answer: 3, explanation: "Demandas de alto impacto com prazos curtos devem ser resolvidas imediatamente." },
@@ -172,31 +175,81 @@
             { q: "Por que as pausas do Pomodoro (5 min) são importantes?", options: ["Para responder e-mails urgentes", "Para adiantar tarefas da faculdade", "Para descansar a mente e manter o desempenho cognitivo nas próximas sessões", "Para organizar arquivos no computador"], answer: 2, explanation: "A pausa deve ser de desconexão total para permitir a recuperação neural." }
         ];
 
-        // --- LÓGICA DE JOGO VIBRANTE ---
+        // --- SISTEMA E VARIÁVEIS ---
+        let questions = [];
         let currentQuestionIndex = 0;
         let score = 0;
         let answered = false;
+        
+        // Timer Variables
+        const TIME_PER_QUESTION = 20; // 20 segundos
+        let timeLeft = TIME_PER_QUESTION;
+        let timerInterval;
 
         // Elementos da DOM
         const scoreDisplay = document.getElementById('scoreDisplay');
-        const progressBar = document.getElementById('progressBar');
+        const timerBar = document.getElementById('timerBar');
+        const timerText = document.getElementById('timerText');
         const cardInner = document.getElementById('cardInner');
         const questionCounter = document.getElementById('questionCounter');
         const questionText = document.getElementById('questionText');
         const optionsContainer = document.getElementById('optionsContainer');
-        
-        // Elementos do Verso da Carta
-        const feedbackBorder = document.getElementById('feedbackBorder');
         const feedbackIcon = document.getElementById('feedbackIcon');
         const feedbackTitle = document.getElementById('feedbackTitle');
         const feedbackExplanation = document.getElementById('feedbackExplanation');
         const nextBtn = document.getElementById('nextBtn');
         const gameContainer = document.getElementById('gameContainer');
         const endScreen = document.getElementById('endScreen');
-        const finalScore = document.getElementById('finalScore');
 
+        // Embaralhador (Algoritmo Fisher-Yates)
+        function shuffleArray(array) {
+            let shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        // Inicialização
         function initGame() {
+            // Embaralha as questões para que nunca repita a ordem
+            questions = shuffleArray(originalQuestions);
+            currentQuestionIndex = 0;
+            score = 0;
+            scoreDisplay.textContent = '0';
             loadQuestion();
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timeLeft = TIME_PER_QUESTION;
+            updateTimerVisuals();
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerVisuals();
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    handleTimeOut();
+                }
+            }, 1000);
+        }
+
+        function updateTimerVisuals() {
+            const percentage = (timeLeft / TIME_PER_QUESTION) * 100;
+            timerBar.style.width = `${percentage}%`;
+            timerText.textContent = `${timeLeft}s restantes`;
+
+            // Muda de cor quando o tempo está acabando (menos de 6 segundos)
+            if (timeLeft <= 5) {
+                timerBar.style.backgroundColor = 'var(--accent-red)';
+                timerText.classList.add('text-red-500');
+            } else {
+                timerBar.style.backgroundColor = 'var(--primary-green)';
+                timerText.classList.remove('text-red-500');
+            }
         }
 
         function loadQuestion() {
@@ -204,85 +257,88 @@
             cardInner.classList.remove('rotate-y-180'); 
             
             const q = questions[currentQuestionIndex];
-            questionCounter.textContent = `MISSÃO ${currentQuestionIndex + 1} DE ${questions.length}`;
+            questionCounter.textContent = `Questão ${currentQuestionIndex + 1} / ${questions.length}`;
             questionText.textContent = q.q;
             
-            // Atualiza barra de progresso vibrante
-            const progress = ((currentQuestionIndex) / questions.length) * 100;
-            progressBar.style.width = `${progress}%`;
-
-            // Renderiza opções estilizadas
+            // Renderiza opções com layout limpo
             optionsContainer.innerHTML = '';
             q.options.forEach((opt, index) => {
                 const btn = document.createElement('button');
-                // Classes de botão de opção estilizadas (Dark Mode com hover neon)
-                btn.className = 'btn-option w-full text-left bg-white/5 border border-white/10 p-5 rounded-2xl hover:bg-white/10 hover:border-white/20 transition-all font-semibold text-white active:scale-95 text-md shadow-inner flex gap-3 items-center';
-                btn.innerHTML = `<span class="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center text-white/50 text-xs font-bold">${String.fromCharCode(65 + index)}</span> <span>${opt}</span>`;
+                btn.className = 'w-full text-left bg-white border border-slate-200 p-3.5 rounded-xl hover:border-[#0284c7] hover:bg-sky-50 transition-colors font-medium text-slate-700 active:scale-95 text-sm md:text-base flex items-center gap-3 shadow-sm';
+                btn.innerHTML = `<span class="shrink-0 w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500 text-xs font-bold">${String.fromCharCode(65 + index)}</span> <span>${opt}</span>`;
                 btn.onclick = () => handleAnswer(index);
                 optionsContainer.appendChild(btn);
             });
+
+            // Aguarda a animação da carta para reiniciar o tempo
+            setTimeout(startTimer, 300);
         }
 
         function handleAnswer(selectedIndex) {
             if (answered) return;
             answered = true;
+            clearInterval(timerInterval); // Para o relógio
 
             const q = questions[currentQuestionIndex];
             const isCorrect = selectedIndex === q.answer;
 
-            // Define feedback vibrante de acerto/erro
-            if (isCorrect) {
+            setFeedbackUi(isCorrect ? 'correct' : 'incorrect', q);
+        }
+
+        function handleTimeOut() {
+            if (answered) return;
+            answered = true;
+            
+            const q = questions[currentQuestionIndex];
+            setFeedbackUi('timeout', q);
+        }
+
+        function setFeedbackUi(status, questionData) {
+            if (status === 'correct') {
                 score++;
                 scoreDisplay.textContent = score;
-                feedbackBorder.className = 'h-2 w-full absolute top-0 left-0 bg-accent';
-                feedbackIcon.className = 'w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center text-5xl text-white bg-accent shadow-lg shadow-accent/40';
+                feedbackIcon.className = 'w-16 h-16 mx-auto mb-3 rounded-full flex items-center justify-center text-4xl text-white shadow-md bg-[#10b981] shadow-emerald-200';
                 feedbackIcon.innerHTML = '✓';
-                feedbackTitle.textContent = 'MUITO BEM!';
-                feedbackTitle.className = 'text-3xl font-extrabold mb-3 tracking-tighter text-accent';
-                feedbackBorder.parentElement.classList.add('neon-glow-accent');
-                feedbackBorder.parentElement.classList.remove('neon-glow-secondary');
-            } else {
-                feedbackBorder.className = 'h-2 w-full absolute top-0 left-0 bg-secondary';
-                feedbackIcon.className = 'w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center text-5xl text-white bg-secondary shadow-lg shadow-secondary/40';
+                feedbackTitle.textContent = 'Acertou!';
+                feedbackTitle.className = 'text-2xl font-bold mb-1 text-[#10b981]';
+            } else if (status === 'incorrect') {
+                feedbackIcon.className = 'w-16 h-16 mx-auto mb-3 rounded-full flex items-center justify-center text-4xl text-white shadow-md bg-[#ef4444] shadow-red-200';
                 feedbackIcon.innerHTML = '✕';
-                feedbackTitle.textContent = 'OPS, QUASE!';
-                feedbackTitle.className = 'text-3xl font-extrabold mb-3 tracking-tighter text-secondary';
-                feedbackBorder.parentElement.classList.add('neon-glow-secondary');
-                feedbackBorder.parentElement.classList.remove('neon-glow-accent');
+                feedbackTitle.textContent = 'Ops, Incorreto!';
+                feedbackTitle.className = 'text-2xl font-bold mb-1 text-[#ef4444]';
+            } else if (status === 'timeout') {
+                feedbackIcon.className = 'w-16 h-16 mx-auto mb-3 rounded-full flex items-center justify-center text-4xl text-white shadow-md bg-[#f59e0b] shadow-amber-200';
+                feedbackIcon.innerHTML = '⏱️';
+                feedbackTitle.textContent = 'Tempo Esgotado!';
+                feedbackTitle.className = 'text-2xl font-bold mb-1 text-[#f59e0b]';
             }
 
-            feedbackExplanation.innerHTML = `<strong class="text-white">A resposta correta era:</strong> ${q.options[q.answer]}<br><br><span class="text-white/60 leading-relaxed">${q.explanation}</span>`;
+            feedbackExplanation.innerHTML = `<strong class="text-slate-700">A resposta correta era:</strong><br><span class="text-slate-800 bg-slate-100 p-2 rounded block mt-1 mb-3 border border-slate-200">${questionData.options[questionData.answer]}</span> <span class="text-slate-600 block leading-relaxed">${questionData.explanation}</span>`;
             
-            // Vira a carta 3D suavemente
             cardInner.classList.add('rotate-y-180');
         }
 
         nextBtn.onclick = () => {
             currentQuestionIndex++;
-            
-            // Vira a carta de volta antes de trocar a pergunta (para evitar piscar o texto anterior)
             cardInner.classList.remove('rotate-y-180');
             
-            // Aguarda a animação de rotação terminar (700ms definido no CSS) para carregar a próxima
             setTimeout(() => {
                 if (currentQuestionIndex < questions.length) {
                     loadQuestion();
                 } else {
                     showEndScreen();
                 }
-            }, 350); 
+            }, 300); 
         };
 
         function showEndScreen() {
-            // Oculta área de jogo e exibe tela final de alta qualidade
+            clearInterval(timerInterval);
             gameContainer.classList.add('hidden');
             endScreen.classList.remove('hidden');
-            endScreen.parentElement.classList.add('animate-pulse');
-            finalScore.textContent = score;
-            progressBar.style.width = '100%';
+            document.getElementById('finalScore').textContent = score;
         }
 
-        // Inicia o roteiro
+        // Inicia
         initGame();
     </script>
 </body>
